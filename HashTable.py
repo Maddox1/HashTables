@@ -3,11 +3,15 @@ import random
 import time
 
 # Maddox McElhinney
-# I'll begin by making my two hash functions, one intended to be bad, and one intended to be good
-# The bad one is based just on the length of the string, and is designed to have thousands of unused buckets
-# The good one is based on the sum of the unicode values of the characters in the string, and is designed to minimize collisions
+# The hash function I'm using is a rolling sum hash function, which should help minimize collisions
 
-# For this example I will use the better hash function and linear probing
+# For my final test, I want to combine the best traits of previous experiments.
+# I will use my first good hash function, as it seemed to lead to the least collisions
+# I will try to combine linked lists with linear probing to see if that can make a hash table more efficient
+# A bucket will be full if it has 2 elements in it, and if a bucket is full, I will linear probe to the next bucket
+# This find a decent middle ground of collisions and unused buckets,
+# as the linked list will allow for more than one element in a bucket, 
+# and the linear probing will allow for more buckets to be used
 
 def getData():
     data = []
@@ -22,45 +26,58 @@ def poorHashFunction(key):
                                                # also added a little division which should encourage more collisions.
 
 def hashFunction(key):
-    return floor(19500 * (sum(ord(char) for char in key) * 0.6180339887 % 1)) # .6180339887 is the golden ratio
+    hashValue = 0
+    for char in key:
+        hashValue = (hashValue * 31 + ord(char)) % 19683
+    return hashValue
     
 def main():
     data = getData()
     
     start = time.time()
-    betterLinearTable = [None] * 19500
+    linearTable = [[] for _ in range(19683)]
     collisions = 0; used = 0
     for i in range(len(data)):
-        index = hashFunction(data[i][0])
-        while betterLinearTable[index] != None: # if bucket is filled
+        if len(linearTable[hashFunction(data[i][0])]) > 1: # if bucket has 2 elements, linear probe
             collisions += 1 # collision detected
-            index = (index + 1) % 19500 # linear probe to next bucket
-        betterLinearTable[index] = data[i][0] # empty bucket found, insert data
-        used += 1 # we use the bucket
-    
+            index = (hashFunction(data[i][0]) + 1) % 19683 # linear probe to next bucket
+            while len(linearTable[index]) > 1: # if bucket has 2 elements, linear probe
+                collisions += 1 # collision detected
+                index = (index + 1) % 19683 # linear probe to next bucket
+            linearTable[index].append(data[i][0]) # empty bucket found, insert data
+        else:
+            linearTable[hashFunction(data[i][0])].append(data[i][0]) # bucket with less than 2 values found, insert data
+        if len(linearTable[hashFunction(data[i][0])]) == 1: # if bucket has 1 element, we used a bucket
+            used += 1 # we use the bucket 
+
     timeTaken = time.time() - start
-    unused = 19500 - used
+    unused = 19683 - used
     
-    print("Better Linear Probing Hash Function (titles):")
+    print("Final Hash Test (titles):")
     print("Total Collisions: " + str(collisions))
     print("Total Unused Buckets: " + str(unused))
     print("Time Taken: " + str(timeTaken) + " seconds")
 
     start = time.time()
-    betterLinearTable = [None] * 19500
+    linearTable = [[] for _ in range(19683)]
     collisions = 0; used = 0
     for i in range(len(data)):
-        index = hashFunction(data[i][1])
-        while betterLinearTable[index] != None: # if bucket is filled
+        if len(linearTable[hashFunction(data[i][1])]) > 1: # if bucket has 2 elements, linear probe
             collisions += 1 # collision detected
-            index = (index + 1) % 19500 # linear probe to next bucket
-        betterLinearTable[index] = data[i][1] # empty bucket found, insert data
-        used += 1 # we use the bucket
-    
+            index = (hashFunction(data[i][1]) + 1) % 19683 # linear probe to next bucket
+            while len(linearTable[index]) > 1: # if bucket has 2 elements, linear probe
+                collisions += 1 # collision detected
+                index = (index + 1) % 19683 # linear probe to next bucket
+            linearTable[index].append(data[i][1]) # empty bucket found, insert data
+        else:
+            linearTable[hashFunction(data[i][1])].append(data[i][1]) # bucket with less than 2 values found, insert data
+        if len(linearTable[hashFunction(data[i][1])]) == 1: # if bucket has 1 element, we used a bucket
+            used += 1 # we use the bucket 
+
     timeTaken = time.time() - start
-    unused = 19500  - used
-        
-    print("Better Linear Probing Hash Function (quotes):")
+    unused = 19683 - used
+    
+    print("Final Hash Test (titles):")
     print("Total Collisions: " + str(collisions))
     print("Total Unused Buckets: " + str(unused))
     print("Time Taken: " + str(timeTaken) + " seconds")
