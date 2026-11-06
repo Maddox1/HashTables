@@ -7,8 +7,7 @@ import time
 # The good one is based on the unicode values of each character in the string,
 # with less buckets to minimize wasted memory
 
-# For this example and the next I will be using a linked list style hash table,
-# By comprising the table of lists, I can make collisions easy to handle by just appending it to the list
+# For this example I will use the poor hash function with a linear probing style hash table
 
 def getData():
     data = []
@@ -19,7 +18,8 @@ def getData():
     return data
 
 def poorHashFunction(key):
-    return (len(key) * 999 + 1) % 300000 
+    return (len(key) // 10 * 999 + 1) % 750000 # further unoptimized by adding addtional buckets which will not be filled! 
+                                               # also added a little division which should encourage more collisions.
 
 def hashFunction(key):
     hashValue = 0
@@ -31,37 +31,39 @@ def main():
     data = getData()
     
     start = time.time()
-    betterLinkedTable = [[] for i in range(19500)] # 19500 buckets for every possible value from good hash function
+    badLinearTable = [None] * 750000
     collisions = 0; used = 0
     for i in range(len(data)):
-        betterLinkedTable[hashFunction(data[i][0])].append(data[i][0])
-        if len(betterLinkedTable[hashFunction(data[i][0])]) > 1:
-            collisions += 1 # track total collisions
-        if len(betterLinkedTable[hashFunction(data[i][0])]) == 1:
-            used += 1 # track total used buckets
+        index = poorHashFunction(data[i][0])
+        while badLinearTable[index] != None: # if bucket is filled
+            collisions += 1 # collision detected
+            index = (index + 1) % 750000 # linear probe to next bucket
+        badLinearTable[index] = data[i][0] # empty bucket found, insert data
+        used += 1 # we use the bucket
     
     timeTaken = time.time() - start
-    unused = 19500 - used
+    unused = 750000 - used
     
-    print("Good Hash Function (titles):")
+    print("Poor Linear Probing Hash Function (titles):")
     print("Total Collisions: " + str(collisions))
     print("Total Unused Buckets: " + str(unused))
     print("Time Taken: " + str(timeTaken) + " seconds")
 
     start = time.time()
-    betterLinkedTable = [[] for i in range(19500)] #refill table with empty buckets
-    collisions = 0; used = 0 # reset counters
+    badLinearTable = [None] * 750000
+    collisions = 0; used = 0
     for i in range(len(data)):
-        betterLinkedTable[hashFunction(data[i][1])].append(data[i][1])
-        if len(betterLinkedTable[hashFunction(data[i][1])]) > 1:
-            collisions += 1 # track total collisions
-        if len(betterLinkedTable[hashFunction(data[i][1])]) == 1:
-            used += 1 # track total used buckets
+        index = poorHashFunction(data[i][1])
+        while badLinearTable[index] != None: # if bucket is filled
+            collisions += 1 # collision detected
+            index = (index + 1) % 750000 # linear probe to next bucket
+        badLinearTable[index] = data[i][1] # empty bucket found, insert data
+        used += 1 # we use the bucket
         
-    unused = 19500 - used
+    unused = 750000 - used
     timeTaken = time.time() - start  
     
-    print("Good Hash Function (quotes):")
+    print("Poor Linear Probing Hash Function (quotes):")
     print("Total Collisions: " + str(collisions))
     print("Total Unused Buckets: " + str(unused))
     print("Time Taken: " + str(timeTaken) + " seconds")
